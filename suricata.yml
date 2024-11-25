@@ -1,0 +1,47 @@
+
+    - name: "Install Suricata yum packages"
+      yum:
+        name:
+          - dnf-command(copr)
+          - epel-release
+          - suricata
+        state: present
+      become: yes
+      become_user: root
+
+    - name: Enable Suricata Service
+      systemd:
+        name: suricata
+        enabled: yes
+      become_user: root
+
+    - name: Stop Suricata Service
+      systemd:
+        name: suricata
+        state: stopped
+      become_user: root
+
+    - name: Transfer Suricata yml file
+      copy:
+        src: "{{ansible_roles_path}}/files/suricata/suricata.yaml"
+        dest: /etc/suricata/
+        mode: 0755
+      become_user: root
+
+    - name: "Update log folder permission "
+      shell: sudo chown -R ansible-c:root /var/log//suricata/
+      become_user: root
+
+    - name: "Update Suricata Ruleset "
+      shell: sudo suricata-update
+      become_user: root
+
+    - name: "Update Suricata Ruleset Providers"
+      shell: sudo suricata-update list-sources
+      become_user: root
+
+    - name: Restart Suricata Service
+      systemd:
+        name: suricata
+        state: restarted
+      become_user: root
